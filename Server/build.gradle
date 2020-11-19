@@ -1,0 +1,9 @@
+plugins {
+    id 'application'
+}
+
+mainClassName = 'io.github.sparkastic.server.ServerMain'
+
+dependencies {
+    implementation project(':Shared')
+}
