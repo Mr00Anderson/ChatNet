@@ -6,6 +6,8 @@ import com.esotericsoftware.minlog.Log;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class ServerMain extends Listener {
 
@@ -36,7 +38,7 @@ public class ServerMain extends Listener {
 
                 clients.remove(p2.clientname);
             }else if(object instanceof PacketChat){
-              
+
                 PacketChat chat = (PacketChat)object;
                 server.sendToAllExceptTCP(connection.getID(), chat);
             }
@@ -48,7 +50,19 @@ public class ServerMain extends Listener {
     @Override
     public void disconnected(Connection connection) {
         PacketClientDisconnect p2 = new PacketClientDisconnect();
-        server.sendToAllExceptTCP(clients.get(p2.clientname).getID(), p2);
+        Iterator it = clients.entrySet().iterator();
+        String username = "";
+        while(it.hasNext()){
+            Map.Entry pairs = (Map.Entry)it.next();
+            if(pairs.getValue() == connection){
+                username = (String)pairs.getKey();
+                break;
+            }
+        }
+        if(!username.equalsIgnoreCase("")) {
+            p2.clientname = username;
+            server.sendToAllExceptTCP(clients.get(p2.clientname).getID(), p2);
+        }
     }
 
 
