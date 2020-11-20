@@ -4,7 +4,6 @@ import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.minlog.Log;
-import com.sun.tools.jdi.Packet;
 import io.github.sparkastic.packets.*;
 
 import java.awt.*;
@@ -25,9 +24,9 @@ public class ClientMain extends Listener implements ActionListener {
     private final Client client;
 
     private String name;
-    public static final String IP = "localhost";
+    public static final String IP ="194.17.26.18";
     public ClientMain() {
-        client = new Client();
+        client = new Client(100000,100000);
         init();
 
         frame.setSize(600, 480);
@@ -162,6 +161,7 @@ public class ClientMain extends Listener implements ActionListener {
                 try{
                     client.connect(1000, IP, 14300, 14300);
                 }catch (IOException e){
+                    System.out.println(e);
                     JOptionPane.showMessageDialog(null, "Connection error");
                     return;
                 }

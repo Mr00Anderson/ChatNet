@@ -3,13 +3,9 @@ package io.github.sparkastic.server;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
-import com.esotericsoftware.minlog.Log;
-import com.sun.tools.jdi.Packet;
 import io.github.sparkastic.packets.*;
 
 import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,7 +21,7 @@ public class ServerMain extends Listener {
 
         ServerMain main = new ServerMain();
         main.init();
-        main.run();
+      //  main.run();
 
     }
 
@@ -103,7 +99,7 @@ public class ServerMain extends Listener {
 
 
     public void init() {
-        server = new Server();
+        server = new Server(100000,100000);
 
         server.start();
         try {
