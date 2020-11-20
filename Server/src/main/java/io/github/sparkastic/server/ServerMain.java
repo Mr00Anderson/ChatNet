@@ -5,22 +5,42 @@ import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 import com.esotericsoftware.minlog.Log;
 import com.sun.tools.jdi.Packet;
-import io.github.sparkastic.packets.PacketChat;
-import io.github.sparkastic.packets.PacketClientConnected;
-import io.github.sparkastic.packets.PacketClientDisconnect;
-import io.github.sparkastic.packets.PacketConnect;
+import io.github.sparkastic.packets.*;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ServerMain extends Listener {
-    private HashMap<String, Connection> clients = new HashMap<>();
-    public Server server;
+    private final HashMap<String, Connection> clients = new HashMap<>();
+    private Server server;
 
     public static void main(String[] args) {
-        Log.set(Log.LEVEL_ERROR);
-        new ServerMain().init();
+
+        ServerMain main = new ServerMain();
+        main.init();
+        main.run();
+
+    }
+
+    public void run(){
+        long prev = System.currentTimeMillis();
+
+        while(true){
+
+            long cur = System.currentTimeMillis();
+
+
+            if((cur - prev) >= 1000 && clients.size() != 0){
+                PacketServerInfo info = new PacketServerInfo();
+                info.totalOnline = clients.size();
+                server.sendToAllTCP(info);
+
+                prev = cur;
+            }
+
+
+        }
 
     }
 
@@ -59,6 +79,7 @@ public class ServerMain extends Listener {
         if (!username.equalsIgnoreCase("")) {
             p2.clientname = username;
             server.sendToAllExceptTCP(clients.get(p2.clientname).getID(), p2);
+            clients.remove(username);
         }
     }
 
@@ -80,5 +101,6 @@ public class ServerMain extends Listener {
         server.getKryo().register(PacketClientConnected.class);
         server.getKryo().register(PacketClientDisconnect.class);
         server.getKryo().register(PacketChat.class);
+        server.getKryo().register(PacketServerInfo.class);
     }
 }

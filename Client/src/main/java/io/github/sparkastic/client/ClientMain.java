@@ -5,10 +5,7 @@ import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.minlog.Log;
 import com.sun.tools.jdi.Packet;
-import io.github.sparkastic.packets.PacketChat;
-import io.github.sparkastic.packets.PacketClientConnected;
-import io.github.sparkastic.packets.PacketClientDisconnect;
-import io.github.sparkastic.packets.PacketConnect;
+import io.github.sparkastic.packets.*;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -19,7 +16,7 @@ import javax.swing.*;
 
 
 public class ClientMain extends Listener implements ActionListener {
-    private static final JFrame frame = new JFrame("Chat Client");
+    private static final JFrame frame = new JFrame("--Sparkext--");
     private static final JTextArea textArea = new JTextArea();
     private static final JTextField textField = new JTextField(40);
     private static final JButton sendButton = new JButton("Send");
@@ -27,43 +24,10 @@ public class ClientMain extends Listener implements ActionListener {
     private final Client client;
 
     private String name;
-
+    public static final String IP = "localhost";
     public ClientMain() {
         client = new Client();
-        while (name == null || name.length() == 0) {
-            name = JOptionPane.showInputDialog(null, "Enter your name :D", "Entername", JOptionPane.QUESTION_MESSAGE);
-        }
-        Log.set(Log.LEVEL_ERROR);
-
-        long current = System.currentTimeMillis();
-        boolean connecting = true;
-
-        client.start();
-        while (connecting) {
-            try {
-                client.connect(5000, "localhost", 14300, 14300);
-                connecting = false;
-            } catch (IOException e) {
-                JOptionPane.showMessageDialog(null, "Unable to Connect .. Try again?");
-                if (System.currentTimeMillis() - current >= 10000) {
-                    JOptionPane.showMessageDialog(null, "Time limit exceeded...Try again later");
-                    System.exit(0);
-                }
-            }
-        }
-
-        client.addListener(this);
-
-        client.getKryo().register(Packet.class);
-        client.getKryo().register(PacketConnect.class);
-        client.getKryo().register(PacketClientConnected.class);
-        client.getKryo().register(PacketClientDisconnect.class);
-        client.getKryo().register(PacketChat.class);
-
-
-        PacketConnect connect = new PacketConnect();
-        connect.username = name;
-        client.sendTCP(connect);
+        init();
 
         frame.setSize(600, 480);
         frame.setLocationRelativeTo(null);
@@ -96,6 +60,44 @@ public class ClientMain extends Listener implements ActionListener {
         new ClientMain();
     }
 
+    public void init(){
+        while (name == null || name.length() == 0) {
+            name = JOptionPane.showInputDialog(null, "Enter your name :D", "Entername", JOptionPane.QUESTION_MESSAGE);
+        }
+        Log.set(Log.LEVEL_ERROR);
+
+        long current = System.currentTimeMillis();
+        boolean connecting = true;
+
+        client.start();
+        while (connecting) {
+            try {
+                client.connect(5000, IP, 14300, 14300);
+                connecting = false;
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(null, "Unable to Connect .. Try again?");
+                if (System.currentTimeMillis() - current >= 10000) {
+                    JOptionPane.showMessageDialog(null, "Time limit exceeded...Try again later");
+                    System.exit(0);
+                }
+            }
+        }
+
+        client.addListener(this);
+
+        client.getKryo().register(Packet.class);
+        client.getKryo().register(PacketConnect.class);
+        client.getKryo().register(PacketClientConnected.class);
+        client.getKryo().register(PacketClientDisconnect.class);
+        client.getKryo().register(PacketChat.class);
+        client.getKryo().register(PacketServerInfo.class);
+
+
+        PacketConnect connect = new PacketConnect();
+        connect.username = name;
+        client.sendTCP(connect);
+    }
+
     @Override
     public void received(Connection connection, Object object) {
         if (object instanceof PacketClientConnected) {
@@ -107,6 +109,9 @@ public class ClientMain extends Listener implements ActionListener {
         } else if (object instanceof PacketChat) {
             PacketChat p1 = (PacketChat) object;
             textArea.append(p1.clientname + ": " + p1.message + "\n");
+        }else if(object instanceof PacketServerInfo){
+            PacketServerInfo info = (PacketServerInfo) (object);
+            frame.setTitle("--Sparkext--                                                Total Online: "+info.totalOnline);
         }
     }
 
@@ -126,7 +131,23 @@ public class ClientMain extends Listener implements ActionListener {
         PacketChat chat = new PacketChat();
         chat.clientname = name;
         chat.message = message;
-        System.out.println("bytes sent : " + client.sendTCP(chat));
+
+
+        int bytes = client.sendTCP(chat);
+        int i = 0;
+        while(bytes == 0){
+            if(i == 3){
+                try{
+                    client.connect(1000, IP, 14300, 14300);
+                }catch (IOException e){
+                    JOptionPane.showMessageDialog(null, "Connection error");
+                    return;
+                }
+            }
+
+            client.sendTCP(message);
+            i++;
+        }
 
 
         textArea.setSelectedTextColor(Color.orange);
