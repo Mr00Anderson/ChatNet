@@ -8,12 +8,18 @@ import com.sun.tools.jdi.Packet;
 import io.github.sparkastic.packets.*;
 
 import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ServerMain extends Listener {
     private final HashMap<String, Connection> clients = new HashMap<>();
     private Server server;
+
+    private String textArea = "############## Start of Server ####################\n" +
+                              "     ########### By : mr.sparkastic ###########\n"+
+                              "                 ###############    \n\n";
 
     public static void main(String[] args) {
 
@@ -27,9 +33,7 @@ public class ServerMain extends Listener {
         long prev = System.currentTimeMillis();
 
         while(true){
-
             long cur = System.currentTimeMillis();
-
 
             if((cur - prev) >= 1000 && clients.size() != 0){
                 PacketServerInfo info = new PacketServerInfo();
@@ -38,9 +42,10 @@ public class ServerMain extends Listener {
 
                 prev = cur;
             }
-
-
         }
+
+
+
 
     }
 
@@ -53,14 +58,27 @@ public class ServerMain extends Listener {
             p.clientName = p1.username;
             server.sendToAllExceptTCP(connection.getID(), p);
             System.out.println(p1.username + " connected");
+            textArea += "--------"+p1.username + " connected!" +"-------------     \n";
+
+            PacketChat msg = new PacketChat();
+            msg.isChat = false;
+            msg.message = textArea;
+
+            server.sendToTCP(connection.getID(), msg);
+
+
         } else if (object instanceof PacketClientDisconnect) {
             PacketClientDisconnect p2 = (PacketClientDisconnect) object;
             server.sendToAllExceptTCP(clients.get(p2.clientname).getID(), p2);
 
             clients.remove(p2.clientname);
+
+            textArea += "--------"+p2.clientname + " disconnected!" +"-------------     \n";
         } else if (object instanceof PacketChat) {
             PacketChat chat = (PacketChat) object;
             server.sendToAllExceptTCP(connection.getID(), chat);
+
+            textArea += chat.clientname + ": " + chat.message + "\n";
         }
     }
 

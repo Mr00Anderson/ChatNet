@@ -33,14 +33,24 @@ public class ClientMain extends Listener implements ActionListener {
         frame.setSize(600, 480);
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setResizable(false);
 
         Panel p = new Panel();
+        p.setBackground(Color.BLACK.brighter());
 
         sendButton.addActionListener(this);
+        sendButton.setBackground(Color.BLACK);
+        sendButton.setForeground(Color.GREEN);
         textField.addActionListener(this);
+        textField.setBackground(Color.BLACK.brighter().brighter().brighter());
+        textField.setForeground(Color.WHITE);
 
 
+        textArea.setMargin( new Insets(10,5,10,10) );
         Font font = new Font("consolas", Font.BOLD, 15);
+
+        textArea.setBackground(Color.BLACK.brighter());
+
         textArea.setFont(font);
         textArea.setEditable(false);
         textArea.setLineWrap(true);
@@ -49,8 +59,9 @@ public class ClientMain extends Listener implements ActionListener {
         DefaultCaret caret = (DefaultCaret) textArea.getCaret();
         caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
         textArea.setCaret(caret);
-
+        textArea.setForeground(Color.WHITE);
         JScrollPane areaScrollPane = new JScrollPane(textArea);
+        areaScrollPane.setBackground(Color.BLACK.brighter());
         areaScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         areaScrollPane.setPreferredSize(new Dimension(580, 380));
         areaScrollPane.setAutoscrolls(true);
@@ -60,6 +71,7 @@ public class ClientMain extends Listener implements ActionListener {
         p.add(sendButton);
 
         frame.add(p);
+        frame.setBackground(Color.BLACK.brighter());
         frame.setVisible(true);
     }
 
@@ -109,13 +121,16 @@ public class ClientMain extends Listener implements ActionListener {
     public void received(Connection connection, Object object) {
         if (object instanceof PacketClientConnected) {
             PacketClientConnected p1 = (PacketClientConnected) object;
-            textArea.append(p1.clientName + " connected!\n");
+            textArea.append("--------"+p1.clientName + " connected!" +"-------------     \n");
         } else if (object instanceof PacketClientDisconnect) {
             PacketClientDisconnect p1 = (PacketClientDisconnect) object;
-            textArea.append(p1.clientname + " disconnected!\n");
+            textArea.append("--------"+p1.clientname + " disconnected!" +"-------------     \n");
         } else if (object instanceof PacketChat) {
             PacketChat p1 = (PacketChat) object;
-            textArea.append(p1.clientname + ": " + p1.message + "\n");
+            if(p1.isChat)
+                textArea.append(p1.clientname + ": " + p1.message + "\n");
+            else
+                textArea.append(p1.message);
         }else if(object instanceof PacketServerInfo){
             PacketServerInfo info = (PacketServerInfo) (object);
             frame.setTitle("--Sparkext--"+name+"                                 Total Online: "+info.totalOnline+"                            ");
@@ -152,14 +167,15 @@ public class ClientMain extends Listener implements ActionListener {
                 }
             }
 
-            client.sendTCP(message);
+            bytes = client.sendTCP(message);
             i++;
         }
 
-
-        textArea.setSelectedTextColor(Color.orange);
+        textArea.setForeground(Color.green);
+        textArea.setSelectedTextColor(Color.green);
         textArea.append(name);
-        textArea.setSelectedTextColor(Color.black);
+        textArea.setForeground(Color.WHITE);
+        textArea.setSelectedTextColor(Color.white);
         textArea.append(": " + message + "\n");
 
         textField.setText("");
