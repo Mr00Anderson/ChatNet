@@ -1,8 +1,14 @@
-import Packets.*;
+package io.github.sparkastic.client;
+
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.minlog.Log;
+import com.sun.tools.jdi.Packet;
+import io.github.sparkastic.packets.PacketChat;
+import io.github.sparkastic.packets.PacketClientConnected;
+import io.github.sparkastic.packets.PacketClientDisconnect;
+import io.github.sparkastic.packets.PacketConnect;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -12,25 +18,22 @@ import java.io.IOException;
 import javax.swing.*;
 
 
-public class ClientMain extends Listener implements ActionListener{
+public class ClientMain extends Listener implements ActionListener {
+    private static final JFrame frame = new JFrame("Chat Client");
+    private static final JTextArea textArea = new JTextArea();
+    private static final JTextField textField = new JTextField(40);
+    private static final JButton sendButton = new JButton("Send");
 
-    private static JFrame frame = new JFrame("Chat Client");
-    private static JTextArea textArea = new JTextArea();
-    private static JTextField textField = new JTextField(40);
-    private static JButton sendButton = new JButton("Send");
+    private final Client client;
 
-    //
     private String name;
-    private  Client client;
 
     public ClientMain() {
         client = new Client();
-        while(name == null || name.length() == 0) {
+        while (name == null || name.length() == 0) {
             name = JOptionPane.showInputDialog(null, "Enter your name :D", "Entername", JOptionPane.QUESTION_MESSAGE);
         }
         Log.set(Log.LEVEL_ERROR);
-
-
 
         long current = System.currentTimeMillis();
         boolean connecting = true;
@@ -42,7 +45,7 @@ public class ClientMain extends Listener implements ActionListener{
                 connecting = false;
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(null, "Unable to Connect .. Try again?");
-                if(System.currentTimeMillis() - current >= 10000){
+                if (System.currentTimeMillis() - current >= 10000) {
                     JOptionPane.showMessageDialog(null, "Time limit exceeded...Try again later");
                     System.exit(0);
                 }
@@ -91,24 +94,19 @@ public class ClientMain extends Listener implements ActionListener{
 
     public static void main(String[] args) {
         new ClientMain();
-
     }
 
     @Override
     public void received(Connection connection, Object object) {
-
-        if(object instanceof Packet){
-            if(object instanceof PacketClientConnected){
-                PacketClientConnected p1 = (PacketClientConnected) object;
-                textArea.append(p1.clientName+" connected!\n");
-            }
-            else if(object instanceof PacketClientDisconnect){
-                PacketClientDisconnect p1 = (PacketClientDisconnect) object;
-                textArea.append(p1.clientname+" disconnected!\n");
-            } else if(object instanceof PacketChat){
-                PacketChat p1 = (PacketChat) object;
-                textArea.append(p1.clientname+": "+p1.message+"\n");
-            }
+        if (object instanceof PacketClientConnected) {
+            PacketClientConnected p1 = (PacketClientConnected) object;
+            textArea.append(p1.clientName + " connected!\n");
+        } else if (object instanceof PacketClientDisconnect) {
+            PacketClientDisconnect p1 = (PacketClientDisconnect) object;
+            textArea.append(p1.clientname + " disconnected!\n");
+        } else if (object instanceof PacketChat) {
+            PacketChat p1 = (PacketChat) object;
+            textArea.append(p1.clientname + ": " + p1.message + "\n");
         }
     }
 
@@ -117,9 +115,9 @@ public class ClientMain extends Listener implements ActionListener{
     public void actionPerformed(ActionEvent arg0) {
 
         String message = textField.getText();
-        if(message.length() == 0){
+        if (message.length() == 0) {
             return;
-        }else if(message.startsWith("Type")){
+        } else if (message.startsWith("Type")) {
             textField.setText("");
             return;
         }
@@ -128,13 +126,13 @@ public class ClientMain extends Listener implements ActionListener{
         PacketChat chat = new PacketChat();
         chat.clientname = name;
         chat.message = message;
-        System.out.println("bytes sent : "+client.sendTCP(chat));
+        System.out.println("bytes sent : " + client.sendTCP(chat));
 
 
         textArea.setSelectedTextColor(Color.orange);
         textArea.append(name);
         textArea.setSelectedTextColor(Color.black);
-        textArea.append(": "+ message + "\n");
+        textArea.append(": " + message + "\n");
 
         textField.setText("");
     }
