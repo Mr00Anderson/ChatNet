@@ -13,6 +13,7 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 
 import javax.swing.*;
+import javax.swing.text.DefaultCaret;
 
 
 public class ClientMain extends Listener implements ActionListener {
@@ -44,9 +45,15 @@ public class ClientMain extends Listener implements ActionListener {
         textArea.setEditable(false);
         textArea.setLineWrap(true);
         textArea.createToolTip();
+        textArea.setAutoscrolls(true);
+        DefaultCaret caret = (DefaultCaret) textArea.getCaret();
+        caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+        textArea.setCaret(caret);
+
         JScrollPane areaScrollPane = new JScrollPane(textArea);
         areaScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         areaScrollPane.setPreferredSize(new Dimension(580, 380));
+        areaScrollPane.setAutoscrolls(true);
 
         p.add(areaScrollPane);
         p.add(textField);
@@ -111,7 +118,7 @@ public class ClientMain extends Listener implements ActionListener {
             textArea.append(p1.clientname + ": " + p1.message + "\n");
         }else if(object instanceof PacketServerInfo){
             PacketServerInfo info = (PacketServerInfo) (object);
-            frame.setTitle("--Sparkext--                                                Total Online: "+info.totalOnline);
+            frame.setTitle("--Sparkext--"+name+"                                 Total Online: "+info.totalOnline+"                            ");
         }
     }
 
